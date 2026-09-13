@@ -1,8 +1,10 @@
 package com.cinema.controller.admin;
 
+import com.cinema.domain.Movie;
 import com.cinema.domain.request.ReqCreateMovieDTO;
 import com.cinema.domain.request.ReqUpdateMovieDTO;
 import com.cinema.domain.response.ResMovieDTO;
+import com.cinema.domain.response.ResultPaginationDTO;
 import com.cinema.service.MovieService;
 import com.cinema.util.error.IdInvalidException;
 import com.cinema.util.error.NameInvalidException;
@@ -11,6 +13,8 @@ import jakarta.validation.Valid;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,8 +35,8 @@ public class AdminMovieController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ResMovieDTO>> getAllMovies() {
-        return ResponseEntity.ok(this.movieService.fetchAllMovies());
+    public ResponseEntity<ResultPaginationDTO> getAllMovies(Specification<Movie> spec, Pageable pageable) {
+        return ResponseEntity.ok(this.movieService.fetchAllMovies(spec, pageable));
     }
 
     @GetMapping("/search/{name}")

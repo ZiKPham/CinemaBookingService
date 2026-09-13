@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.cinema.domain.Booking;
@@ -14,6 +17,7 @@ import com.cinema.domain.Ticket;
 import com.cinema.domain.User;
 import com.cinema.domain.request.ReqBookingDTO;
 import com.cinema.domain.response.ResBookingDTO;
+import com.cinema.domain.response.ResultPaginationDTO;
 import com.cinema.repository.BookingRepository;
 import com.cinema.repository.SeatRepository;
 import com.cinema.repository.ShowtimeRepository;
@@ -160,11 +164,25 @@ public class BookingService {
         return convertToResBookingDTO(updatedBooking);
     }
 
-    public List<ResBookingDTO> fetchAllBookings() {
-        List<Booking> bookings = this.bookingRepository.findAll();
-        return bookings.stream()
-                .map(this::convertToResBookingDTO)
-                .collect(Collectors.toList());
+    public ResultPaginationDTO fetchAllBookings(Specification<Booking> spec, Pageable pageable) {
+        Page<Booking> pageBooking = this.bookingRepository.findAll(spec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageBooking.getTotalPages());
+        mt.setTotal(pageBooking.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(pageBooking.getContent());
+
+        List<ResBookingDTO> listBooking = pageBooking.getContent().stream()
+                .map(item -> convertToResBookingDTO(item)).collect(Collectors.toList());
+
+        rs.setResult(listBooking);
+        return rs;
     }
 
     public ResBookingDTO getBookingDetailAdmin(Long id) throws IdInvalidException {

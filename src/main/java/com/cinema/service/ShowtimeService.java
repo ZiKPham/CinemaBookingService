@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.cinema.domain.Movie;
@@ -14,6 +17,7 @@ import com.cinema.domain.request.ReqCreateShowtimeDTO;
 import com.cinema.domain.request.ReqUpdateShowtimeDTO;
 import com.cinema.domain.response.ResSeatDTO;
 import com.cinema.domain.response.ResShowtimeDTO;
+import com.cinema.domain.response.ResultPaginationDTO;
 import com.cinema.repository.MovieRepository;
 import com.cinema.repository.RoomRepository;
 import com.cinema.repository.SeatRepository;
@@ -73,11 +77,25 @@ public class ShowtimeService {
         return this.convertToResShowtimeDTO(saved);
     }
 
-    public List<ResShowtimeDTO> fetchAllShowtimes() {
-        return this.showtimeRepository.findAll()
-                .stream()
-                .map(this::convertToResShowtimeDTO)
-                .collect(Collectors.toList());
+    public ResultPaginationDTO fetchAllShowtimes(Specification<Showtime> spec, Pageable pageable) {
+        Page<Showtime> pageShowtime = this.showtimeRepository.findAll(spec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageShowtime.getTotalPages());
+        mt.setTotal(pageShowtime.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(pageShowtime.getContent());
+
+        List<ResShowtimeDTO> listShowtime = pageShowtime.getContent().stream()
+                .map(item -> convertToResShowtimeDTO(item)).collect(Collectors.toList());
+
+        rs.setResult(listShowtime);
+        return rs;
     }
 
     public ResShowtimeDTO fetchShowtimeById(Long id) throws IdInvalidException {

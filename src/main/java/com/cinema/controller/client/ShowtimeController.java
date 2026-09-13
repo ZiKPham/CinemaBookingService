@@ -2,11 +2,15 @@ package com.cinema.controller.client;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.cinema.domain.Showtime;
 import com.cinema.domain.response.ResSeatDTO;
 import com.cinema.domain.response.ResShowtimeDTO;
+import com.cinema.domain.response.ResultPaginationDTO;
 import com.cinema.service.ShowtimeService;
 import com.cinema.util.error.IdInvalidException;
 
@@ -21,8 +25,8 @@ public class ShowtimeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ResShowtimeDTO>> getAllShowtimes() {
-        return ResponseEntity.ok(this.showtimeService.fetchAllShowtimes());
+    public ResponseEntity<ResultPaginationDTO> getAllShowtimes(Specification<Showtime> spec, Pageable pageable) {
+        return ResponseEntity.ok(this.showtimeService.fetchAllShowtimes(spec, pageable));
     }
 
     @GetMapping("/{id}")

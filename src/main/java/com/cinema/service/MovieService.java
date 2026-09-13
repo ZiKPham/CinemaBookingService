@@ -4,12 +4,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.cinema.domain.Movie;
 import com.cinema.domain.request.ReqCreateMovieDTO;
 import com.cinema.domain.request.ReqUpdateMovieDTO;
 import com.cinema.domain.response.ResMovieDTO;
+import com.cinema.domain.response.ResultPaginationDTO;
 import com.cinema.repository.MovieRepository;
 import com.cinema.util.error.IdInvalidException;
 import com.cinema.util.error.NameInvalidException;
@@ -41,11 +45,25 @@ public class MovieService {
         return this.convertToResMovieDTO(saveMovie);
     }
 
-    public List<ResMovieDTO> fetchAllMovies() {
-        List<Movie> movies = this.movieRepository.findAll();
-        return movies.stream()
-                .map(this::convertToResMovieDTO)
-                .collect(Collectors.toList());
+    public ResultPaginationDTO fetchAllMovies(Specification<Movie> spec, Pageable pageable) {
+        Page<Movie> pageMovie = this.movieRepository.findAll(spec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageMovie.getTotalPages());
+        mt.setTotal(pageMovie.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(pageMovie.getContent());
+
+        List<ResMovieDTO> listMovies = pageMovie.getContent().stream()
+                .map(item -> convertToResMovieDTO(item)).collect(Collectors.toList());
+
+        rs.setResult(listMovies);
+        return rs;
     }
 
     public List<ResMovieDTO> fetchMovieByName(String name) throws NameInvalidException {

@@ -1,14 +1,16 @@
 package com.cinema.controller.admin;
 
-import java.util.List;
-
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cinema.domain.Booking;
 import com.cinema.domain.response.ResBookingDTO;
+import com.cinema.domain.response.ResultPaginationDTO;
 import com.cinema.service.BookingService;
 import com.cinema.util.error.IdInvalidException;
 
@@ -23,10 +25,8 @@ public class AdminBookingController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ResBookingDTO>> getAllBookingsForAdmin() {
-        // Lấy danh sách toàn bộ vé của tất cả người dùng trong hệ thống
-        List<ResBookingDTO> bookings = this.bookingService.fetchAllBookings();
-        return ResponseEntity.ok(bookings);
+    public ResponseEntity<ResultPaginationDTO> getAllShowtimes(Specification<Booking> spec, Pageable pageable) {
+        return ResponseEntity.ok(this.bookingService.fetchAllBookings(spec, pageable));
     }
 
     @GetMapping("/{id}")

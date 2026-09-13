@@ -1,11 +1,15 @@
 package com.cinema.controller.client;
 
+import com.cinema.domain.Movie;
 import com.cinema.domain.response.ResMovieDTO;
+import com.cinema.domain.response.ResultPaginationDTO;
 import com.cinema.service.MovieService;
 import com.cinema.util.error.NameInvalidException;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +24,8 @@ public class MovieController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ResMovieDTO>> getAllMovies() {
-        return ResponseEntity.ok(this.movieService.fetchAllMovies());
+    public ResponseEntity<ResultPaginationDTO> getAllMovies(Specification<Movie> spec, Pageable pageable) {
+        return ResponseEntity.ok(this.movieService.fetchAllMovies(spec, pageable));
     }
 
     @GetMapping("/search/{name}")
