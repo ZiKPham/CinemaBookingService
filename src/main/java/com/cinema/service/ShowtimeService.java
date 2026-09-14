@@ -89,7 +89,6 @@ public class ShowtimeService {
         mt.setTotal(pageShowtime.getTotalElements());
 
         rs.setMeta(mt);
-        rs.setResult(pageShowtime.getContent());
 
         List<ResShowtimeDTO> listShowtime = pageShowtime.getContent().stream()
                 .map(item -> convertToResShowtimeDTO(item)).collect(Collectors.toList());

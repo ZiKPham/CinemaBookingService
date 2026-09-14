@@ -176,7 +176,6 @@ public class BookingService {
         mt.setTotal(pageBooking.getTotalElements());
 
         rs.setMeta(mt);
-        rs.setResult(pageBooking.getContent());
 
         List<ResBookingDTO> listBooking = pageBooking.getContent().stream()
                 .map(item -> convertToResBookingDTO(item)).collect(Collectors.toList());

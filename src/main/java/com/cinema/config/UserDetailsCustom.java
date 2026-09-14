@@ -25,9 +25,14 @@ public class UserDetailsCustom implements UserDetailsService {
             throw new UsernameNotFoundException("User/Password không hợp lệ!");
         }
 
+        String role = user.getRole();
+        if (role == null || role.isEmpty()) {
+            role = "USER";
+        }
+
         return new User(
                 user.getEmail(),
                 user.getPassword(),
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole())));
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + role)));
     }
 }

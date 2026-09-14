@@ -5,6 +5,12 @@ import com.cinema.domain.response.ResMovieDTO;
 import com.cinema.domain.response.ResultPaginationDTO;
 import com.cinema.service.MovieService;
 import com.cinema.util.error.NameInvalidException;
+import com.turkraft.springfilter.boot.Filter;
+
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
@@ -24,7 +30,8 @@ public class MovieController {
     }
 
     @GetMapping
-    public ResponseEntity<ResultPaginationDTO> getAllMovies(Specification<Movie> spec, Pageable pageable) {
+    public ResponseEntity<ResultPaginationDTO> getAllMovies(@Parameter(hidden = true) @Filter Specification<Movie> spec,
+            Pageable pageable) {
         return ResponseEntity.ok(this.movieService.fetchAllMovies(spec, pageable));
     }
 

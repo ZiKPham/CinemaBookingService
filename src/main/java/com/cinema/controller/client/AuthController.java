@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,11 +33,14 @@ public class AuthController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final SecurityUtil securityUtil;
+    private final AuthenticationManager authenticationManager;
 
-    public AuthController(UserService userService, PasswordEncoder passwordEncoder, SecurityUtil securityUtil) {
+    public AuthController(UserService userService, PasswordEncoder passwordEncoder,
+            SecurityUtil securityUtil, AuthenticationManager authenticationManager) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.securityUtil = securityUtil;
+        this.authenticationManager = authenticationManager;
     }
 
     @PostMapping("/register")
@@ -45,28 +49,50 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
+    // @PostMapping("/login")
+    // public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody LoginDTO
+    // loginDTO) throws IdInvalidException {
+    // User user = this.userService.getUserByUsername(loginDTO.getUsername());
+    // if (user == null) {
+    // throw new IdInvalidException("Thông tin đăng nhập không chính xác!");
+    // }
+
+    // boolean isMatched = this.passwordEncoder.matches(loginDTO.getPassword(),
+    // user.getPassword());
+    // if (!isMatched) {
+    // throw new IdInvalidException("Thông tin đăng nhập không chính xác!");
+    // }
+
+    // List<GrantedAuthority> authorities = new ArrayList<>();
+    // authorities.add(new SimpleGrantedAuthority("ROLE_USER")); // Hoặc lấy từ
+    // user.getRole()
+
+    // Authentication authentication = new UsernamePasswordAuthenticationToken(
+    // user.getEmail(),
+    // null,
+    // authorities);
+    // SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    // String access_token = this.securityUtil.createToken(user.getEmail(),
+    // user.getRole());
+    // return ResponseEntity.ok(new ResLoginDTO((access_token)));
+    // }
     @PostMapping("/login")
     public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody LoginDTO loginDTO) throws IdInvalidException {
-        User user = this.userService.getUserByUsername(loginDTO.getUsername());
-        if (user == null) {
-            throw new IdInvalidException("Thông tin đăng nhập không chính xác!");
-        }
+        // 1. Nạp username và password vào token xác thực
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                loginDTO.getUsername(), loginDTO.getPassword());
 
-        boolean isMatched = this.passwordEncoder.matches(loginDTO.getPassword(), user.getPassword());
-        if (!isMatched) {
-            throw new IdInvalidException("Thông tin đăng nhập không chính xác!");
-        }
+        // 2. Xác thực người dùng (Spring sẽ tự động gọi UserDetailsCustom để check DB)
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
 
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER")); // Hoặc lấy từ user.getRole()
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
-                null,
-                authorities);
+        // 3. Lưu thông tin vào SecurityContext
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
+        // 4. Lấy thông tin user để tạo JWT token
+        User user = this.userService.getUserByUsername(loginDTO.getUsername());
         String access_token = this.securityUtil.createToken(user.getEmail(), user.getRole());
-        return ResponseEntity.ok(new ResLoginDTO((access_token)));
+
+        return ResponseEntity.ok(new ResLoginDTO(access_token));
     }
 }

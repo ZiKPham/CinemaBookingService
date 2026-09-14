@@ -13,6 +13,9 @@ import com.cinema.domain.response.ResBookingDTO;
 import com.cinema.domain.response.ResultPaginationDTO;
 import com.cinema.service.BookingService;
 import com.cinema.util.error.IdInvalidException;
+import com.turkraft.springfilter.boot.Filter;
+
+import io.swagger.v3.oas.annotations.Parameter;
 
 @RestController
 @RequestMapping("/api/v1/admin/bookings")
@@ -25,7 +28,8 @@ public class AdminBookingController {
     }
 
     @GetMapping
-    public ResponseEntity<ResultPaginationDTO> getAllShowtimes(Specification<Booking> spec, Pageable pageable) {
+    public ResponseEntity<ResultPaginationDTO> getAllShowtimes(
+            @Parameter(hidden = true) @Filter Specification<Booking> spec, Pageable pageable) {
         return ResponseEntity.ok(this.bookingService.fetchAllBookings(spec, pageable));
     }
 

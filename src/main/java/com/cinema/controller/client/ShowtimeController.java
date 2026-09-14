@@ -13,6 +13,9 @@ import com.cinema.domain.response.ResShowtimeDTO;
 import com.cinema.domain.response.ResultPaginationDTO;
 import com.cinema.service.ShowtimeService;
 import com.cinema.util.error.IdInvalidException;
+import com.turkraft.springfilter.boot.Filter;
+
+import io.swagger.v3.oas.annotations.Parameter;
 
 @RestController
 @RequestMapping("/api/v1/showtimes")
@@ -25,7 +28,9 @@ public class ShowtimeController {
     }
 
     @GetMapping
-    public ResponseEntity<ResultPaginationDTO> getAllShowtimes(Specification<Showtime> spec, Pageable pageable) {
+    public ResponseEntity<ResultPaginationDTO> getAllShowtimes(
+            @Parameter(hidden = true) @Filter Specification<Showtime> spec,
+            Pageable pageable) {
         return ResponseEntity.ok(this.showtimeService.fetchAllShowtimes(spec, pageable));
     }
 

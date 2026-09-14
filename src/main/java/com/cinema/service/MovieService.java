@@ -20,6 +20,7 @@ import com.cinema.util.error.NameInvalidException;
 
 @Service
 public class MovieService {
+
     private final MovieRepository movieRepository;
 
     public MovieService(MovieRepository movieRepository) {
@@ -57,7 +58,6 @@ public class MovieService {
         mt.setTotal(pageMovie.getTotalElements());
 
         rs.setMeta(mt);
-        rs.setResult(pageMovie.getContent());
 
         List<ResMovieDTO> listMovies = pageMovie.getContent().stream()
                 .map(item -> convertToResMovieDTO(item)).collect(Collectors.toList());
