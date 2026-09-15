@@ -37,14 +37,17 @@ public class BookingService {
     private final ShowtimeRepository showtimeRepository;
     private final SeatRepository seatRepository;
     private final UserRepository userRepository;
+    private final SeatLockService seatLockService;
 
     public BookingService(BookingRepository bookingRepository, TicketRepository ticketRepository,
-            ShowtimeRepository showtimeRepository, SeatRepository seatRepository, UserRepository userRepository) {
+            ShowtimeRepository showtimeRepository, SeatRepository seatRepository, UserRepository userRepository,
+            SeatLockService seatLockService) {
         this.bookingRepository = bookingRepository;
         this.ticketRepository = ticketRepository;
         this.showtimeRepository = showtimeRepository;
         this.seatRepository = seatRepository;
         this.userRepository = userRepository;
+        this.seatLockService = seatLockService;
     }
 
     @Transactional
@@ -61,6 +64,18 @@ public class BookingService {
         List<Seat> seats = this.seatRepository.findAllById(req.getSeatIds());
         if (seats.size() != req.getSeatIds().size()) {
             throw new IdInvalidException("Một số ghế chọn không tồn tại trong hệ thống");
+        }
+
+        for (Long seatId : req.getSeatIds()) {
+            String holderId = seatLockService.getSeatHolder(req.getShowtimeId(), seatId);
+            if (holderId == null) {
+                throw new IdInvalidException(
+                        "Ghế " + seatId + " chưa được giữ chỗ hoặc đã hết hạn giữ 5 phút. Vui lòng chọn lại ghế!");
+            }
+
+            if (!holderId.equals(String.valueOf(user.getId()))) {
+                throw new IdInvalidException("Ghế " + seatId + " đang được giữ bởi người dùng khác!");
+            }
         }
 
         long roomOfShowtimeId = showtime.getRoom().getId();
@@ -108,6 +123,10 @@ public class BookingService {
         booking.setTickets(tickets);
 
         Booking savedBooking = this.bookingRepository.save(booking);
+
+        for (Long seatId : req.getSeatIds()) {
+            seatLockService.unlockSeat(req.getShowtimeId(), seatId);
+        }
 
         return convertToResBookingDTO(savedBooking);
     }
